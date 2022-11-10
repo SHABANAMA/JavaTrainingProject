@@ -16,4 +16,10 @@ import lombok.NoArgsConstructor;
 @ConfigurationProperties(prefix="custom")
 public class CustomProperties {
 	private String errormsg;
+	private String savesuccess;
+	private String updatesuccess;
+	private String entrysuccess;
+	private String deletesuccess;
+	private String registersuccess;
+
 }
