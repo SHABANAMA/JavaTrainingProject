@@ -15,7 +15,7 @@ public class DisplayStudentDetailsResponse {
 	private String firstName;
 	private String lastName;
 	private String email;
-	private Long phone;
+	private String phone;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
 	private Date dob;
 	private StudentAcademic studentAcademic;

@@ -14,6 +14,7 @@ import com.sms.studentmonitoringapp.repository.CourseRepository;
 import com.sms.studentmonitoringapp.repository.RegisteredCourseRepository;
 import com.sms.studentmonitoringapp.repository.StudentAcademicRepository;
 import com.sms.studentmonitoringapp.repository.UserRepository;
+import com.sms.studentmonitoringapp.util.RegistrationUtil;
 
 @Service
 public class SmsStudentServiceImpl implements SmsStudentService {
@@ -83,11 +84,13 @@ public class SmsStudentServiceImpl implements SmsStudentService {
 		
 		RegisteredCourse registeredCourse = new RegisteredCourse();
 		Optional<User> opt = Optional.ofNullable(userRepository.findByUserName(userName));
+		User user = null;
 		if (opt.isPresent()) {
-			User user = opt.get();
+			user = opt.get();
+			RegistrationUtil.validateAge(user.getDob());
 			registeredCourse.setStudentId(user.getUserId());
 		}
-
+	
 		Optional<Course> opt1 = Optional
 				.ofNullable(courseRepository.findByCourseName(courseRegisterRequest.getCourseName()));
 		if (opt1.isPresent()) {

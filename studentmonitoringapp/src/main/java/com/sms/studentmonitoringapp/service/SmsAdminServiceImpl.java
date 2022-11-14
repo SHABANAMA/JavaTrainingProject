@@ -18,6 +18,8 @@ import com.sms.studentmonitoringapp.dto.AddCourseRequest;
 import com.sms.studentmonitoringapp.dto.AddCourseResponse;
 import com.sms.studentmonitoringapp.dto.StudentDetailsEntryRequest;
 import com.sms.studentmonitoringapp.dto.StudentDetailsEntryResponse;
+import com.sms.studentmonitoringapp.dto.StudentForACourseResponse;
+import com.sms.studentmonitoringapp.dto.TotalAndBalanceFeeResponse;
 import com.sms.studentmonitoringapp.entity.Course;
 import com.sms.studentmonitoringapp.entity.RegisteredCourse;
 import com.sms.studentmonitoringapp.entity.StudentAcademic;
@@ -153,4 +155,42 @@ public class SmsAdminServiceImpl implements SmsAdminService {
 		}
 		return lhm;
 	}
+
+	@Override
+	public List<StudentForACourseResponse> displayStudentsForACourse(String courseName) {
+		List<StudentForACourseResponse> dsdr = new ArrayList<StudentForACourseResponse>();
+		Course course = courseRepository.findByCourseName(courseName);
+		List<RegisteredCourse> al = registeredCourseRepository.findByCourseId(course.getCourseId());
+		for(RegisteredCourse rc : al) {
+			User user = (userRepository.findById(rc.getStudentId())).get();
+			StudentAcademic studentAcademic = studentAcademicRepository.findByStudentId(rc.getStudentId());
+			StudentForACourseResponse studentForACourseResponse = new StudentForACourseResponse(user,studentAcademic);
+			dsdr.add(studentForACourseResponse);
+		}
+		return dsdr;
+	}
+
+	@Override
+	public List<Course> displayCoursesForAStudent(String userName) {
+		List<Course> courseList = new ArrayList<Course>();
+		User user = userRepository.findByUserName(userName);
+		List<RegisteredCourse> al = registeredCourseRepository.findByStudentId(user.getUserId());
+		for(RegisteredCourse rc:al) {
+			Course course = (courseRepository.findById(rc.getCourseId())).get();
+			courseList.add(course);
+		}
+		return courseList;
+	}
+
+	@Override
+	public TotalAndBalanceFeeResponse totalAndBalanceFee() {
+		List<RegisteredCourse> allRegistration= registeredCourseRepository.findAll();
+		double sum = 0,rem = 0;
+		for(RegisteredCourse rc:allRegistration) {
+			sum = sum + rc.getFeesPaid();
+			rem = rem + rc.getBalFeesToPay();
+		}
+		return new TotalAndBalanceFeeResponse(sum,rem);
+	}
+		
 }

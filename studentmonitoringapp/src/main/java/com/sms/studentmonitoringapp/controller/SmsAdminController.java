@@ -3,6 +3,8 @@ package com.sms.studentmonitoringapp.controller;
 import java.util.List;
 import java.util.Map;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +21,8 @@ import com.sms.studentmonitoringapp.dto.CourseSearchAllResponse;
 import com.sms.studentmonitoringapp.dto.RegisteredStudentsAllResponse;
 import com.sms.studentmonitoringapp.dto.StudentDetailsEntryRequest;
 import com.sms.studentmonitoringapp.dto.StudentDetailsEntryResponse;
+import com.sms.studentmonitoringapp.dto.StudentForACourseResponse;
+import com.sms.studentmonitoringapp.dto.TotalAndBalanceFeeResponse;
 import com.sms.studentmonitoringapp.entity.Course;
 import com.sms.studentmonitoringapp.service.SmsAdminServiceImpl;
 
@@ -32,7 +36,7 @@ public class SmsAdminController {
 	private SmsAdminServiceImpl smsAdminServiceImpl;
 	
 	@PostMapping("/adminEnterDetails")
-	public StudentDetailsEntryResponse enterStudentDetails(@RequestBody StudentDetailsEntryRequest studentDetailsEntryRequest) {
+	public StudentDetailsEntryResponse enterStudentDetails(@Valid @RequestBody StudentDetailsEntryRequest studentDetailsEntryRequest) {
 		return smsAdminServiceImpl.enterStudentDetails(studentDetailsEntryRequest);
 	}
 	
@@ -77,4 +81,19 @@ public class SmsAdminController {
 		return smsAdminServiceImpl.displayStudentsWithBalance();
 	}
 	
+	@GetMapping("/listStudentsForACourse/{courseName}")
+	public List<StudentForACourseResponse> displayStudentsForACourse(@PathVariable("courseName")String courseName){
+		return smsAdminServiceImpl.displayStudentsForACourse(courseName);
+	}
+	
+	@GetMapping("/listCoursesForAStudent/{userName}")
+	public List<Course> displayCoursesForAStudent(@PathVariable("userName")String userName){
+		return smsAdminServiceImpl.displayCoursesForAStudent(userName);
+	}
+	
+	@GetMapping("/totalAndBalanceFee")
+	public TotalAndBalanceFeeResponse totalAndBalanceFee() {
+		return smsAdminServiceImpl.totalAndBalanceFee();
+	}
+
 }
