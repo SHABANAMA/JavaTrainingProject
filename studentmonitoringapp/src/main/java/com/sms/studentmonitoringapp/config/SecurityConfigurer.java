@@ -14,7 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.sms.studentmonitoringapp.filter.JwtFilter;
-import com.sms.studentmonitoringapp.service.StudentMonitoringServiceImpl;
+import com.sms.studentmonitoringapp.service.SmsAuthenticationServiceImpl;
 
 @Configuration
 @EnableWebSecurity
@@ -24,11 +24,11 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter{
 	private JwtFilter jwtFilter;
 	
 	@Autowired
-	private StudentMonitoringServiceImpl studentMonitoringServiceImpl;
+	private SmsAuthenticationServiceImpl smsAuthenticationServiceImpl;
 	
 	@Override
 		protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-			auth.userDetailsService(studentMonitoringServiceImpl);
+			auth.userDetailsService(smsAuthenticationServiceImpl);
 	}	
 	
 	@Override

@@ -15,7 +15,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.sms.studentmonitoringapp.service.StudentMonitoringServiceImpl;
+import com.sms.studentmonitoringapp.service.SmsAuthenticationServiceImpl;
 import com.sms.studentmonitoringapp.util.JwtUtil;
 
 @Component
@@ -23,7 +23,7 @@ public class JwtFilter extends OncePerRequestFilter{
 
 
 	@Autowired
-	private StudentMonitoringServiceImpl studentMonitoringServiceImpl;
+	private SmsAuthenticationServiceImpl smsAuthenticationServiceImpl;
 
 	@Autowired
 	private JwtUtil jwtUtil;
@@ -41,7 +41,7 @@ public class JwtFilter extends OncePerRequestFilter{
 		}
 
 		if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-			UserDetails userDetails = studentMonitoringServiceImpl.loadUserByUsername(username);
+			UserDetails userDetails = smsAuthenticationServiceImpl.loadUserByUsername(username);
 
 			if (jwtUtil.validateToken(jwt, userDetails)) {
 				UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
