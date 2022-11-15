@@ -6,4 +6,5 @@ import com.sms.studentmonitoringapp.entity.User;
 
 public interface UserRepository extends JpaRepository<User, Long>{
 	public User findByUserName(String username);
+	public void deleteByUserName(String userName);
 }

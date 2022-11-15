@@ -1,5 +1,10 @@
 package com.sms.studentmonitoringapp.advice;
 
+import java.util.ArrayList;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +35,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
 		ErrorObject errorObject = new ErrorObject();
 		errorObject.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
 		errorObject.setMessage(e.getMessage());
+		return new ResponseEntity<ErrorObject>(errorObject, HttpStatus.OK);
+	}
+	
+	@ExceptionHandler(ConstraintViolationException.class)
+	public ResponseEntity<ErrorObject> handleBadCredentialsException(ConstraintViolationException e) {
+		ErrorObject errorObject = new ErrorObject();
+		errorObject.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+		errorObject.setMessage(((ConstraintViolation<?>)(new ArrayList<Object>(e.getConstraintViolations()).get(0))).getMessage());
 		return new ResponseEntity<ErrorObject>(errorObject, HttpStatus.OK);
 	}
 	

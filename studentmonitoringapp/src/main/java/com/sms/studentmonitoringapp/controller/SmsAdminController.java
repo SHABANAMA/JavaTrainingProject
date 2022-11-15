@@ -1,7 +1,6 @@
 package com.sms.studentmonitoringapp.controller;
 
 import java.util.List;
-import java.util.Set;
 
 import javax.validation.Valid;
 
@@ -40,6 +39,26 @@ public class SmsAdminController {
 		return smsAdminServiceImpl.enterStudentDetails(studentDetailsEntryRequest);
 	}
 	
+	@PutMapping("/updateStudentDetails/{userName}")
+	public StudentDetailsEntryResponse updateStudent(@PathVariable("userName") String userName,@RequestBody StudentDetailsEntryRequest studentDetailsEntryRequest) {
+		return smsAdminServiceImpl.updateStudent(userName, studentDetailsEntryRequest);
+	}
+	
+	@DeleteMapping("/deleteStudentDetails/{userName}")
+	public String deleteStudent(@PathVariable("userName") String userName) {
+		return smsAdminServiceImpl.deleteStudent(userName);
+	}
+	
+	@GetMapping("/listAllStudentsDetails")
+	public List<StudentForACourseResponse> listAllStudents() {
+		return smsAdminServiceImpl.listAllStudents();
+	}
+
+	@GetMapping("/listStudentByUserName/{userName}")
+	public StudentForACourseResponse listStudentByUserName(@PathVariable("userName") String userName) {
+		return smsAdminServiceImpl.listStudentByUserName(userName);
+	}
+	
 	@PostMapping("/addCourseDetails")
 	public AddCourseResponse addCourse(@RequestBody  AddCourseRequest addCourseRequest) {
 		return smsAdminServiceImpl.addCourse(addCourseRequest);
@@ -72,7 +91,7 @@ public class SmsAdminController {
 	}
 	
 	@GetMapping("/listStudentsWithNoBalancePay")
-	public Set<String> displayStudentsWithNoBalance(){
+	public List<String> displayStudentsWithNoBalance(){
 		return smsAdminServiceImpl.displayStudentsWithNoBalance();
 	}
 	

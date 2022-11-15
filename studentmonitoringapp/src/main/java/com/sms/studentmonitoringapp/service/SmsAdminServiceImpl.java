@@ -3,10 +3,8 @@ package com.sms.studentmonitoringapp.service;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import javax.transaction.Transactional;
 
@@ -53,9 +51,9 @@ public class SmsAdminServiceImpl implements SmsAdminService {
 		User user = studentDetailsEntryRequest.getUser();
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(user.getDob());
-		user.setPassWord(user.getFirstName()+calendar.get(Calendar.DAY_OF_MONTH)+calendar.get(Calendar.MONTH)+
-				calendar.get(Calendar.YEAR));
-		user.setUserName(user.getFirstName()+user.getLastName());
+		user.setPassWord(user.getFirstName() + calendar.get(Calendar.DAY_OF_MONTH) + calendar.get(Calendar.MONTH)
+				+ calendar.get(Calendar.YEAR));
+		user.setUserName(user.getFirstName() + user.getLastName());
 		user = userRepository.save(user);
 
 		StudentAcademic studentAcademic = studentDetailsEntryRequest.getStudentAcademic();
@@ -66,6 +64,59 @@ public class SmsAdminServiceImpl implements SmsAdminService {
 				user.getFirstName() + user.getLastName());
 	}
 
+	@Override
+	@Transactional
+	public StudentDetailsEntryResponse updateStudent(String userName,
+			StudentDetailsEntryRequest studentDetailsEntryRequest) {
+		
+		User dbUser = Optional.ofNullable(userRepository.findByUserName(userName)).get();
+		Long id = dbUser.getUserId();
+		dbUser = studentDetailsEntryRequest.getUser();
+		dbUser.setUserId(id);
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(dbUser.getDob());
+		dbUser.setPassWord(dbUser.getFirstName() + calendar.get(Calendar.DAY_OF_MONTH) + calendar.get(Calendar.MONTH)
+				+ calendar.get(Calendar.YEAR));
+		dbUser.setUserName(dbUser.getFirstName() + dbUser.getLastName());
+		dbUser = userRepository.save(dbUser);
+		
+		StudentAcademic dbStudentAcademic = studentAcademicRepository.findByStudentId(dbUser.getUserId());
+		dbStudentAcademic = studentDetailsEntryRequest.getStudentAcademic();
+		dbStudentAcademic.setStudentId(dbUser.getUserId());
+		dbStudentAcademic = studentAcademicRepository.save(dbStudentAcademic);
+		return new StudentDetailsEntryResponse(customProperties.getUpdatesuccess(),
+				dbUser.getFirstName() + dbUser.getLastName());
+	}
+	
+	@Override
+	@Transactional
+	public String deleteStudent(String userName) {
+		User user = userRepository.findByUserName(userName);
+		String s = " OF : "+user.getFirstName()+" "+user.getLastName();
+		userRepository.deleteByUserName(userName);
+		studentAcademicRepository.deleteById(user.getUserId());
+		registeredCourseRepository.deleteByStudentId(user.getUserId());
+		return customProperties.getDeletesuccess()+s;
+	}
+
+	@Override
+	public List<StudentForACourseResponse> listAllStudents() {
+		List<StudentForACourseResponse> studentDetails= new ArrayList<StudentForACourseResponse>();
+		List<User> students = userRepository.findAll();
+		for (User u : students) {
+			StudentForACourseResponse studentForACourseResponse = new StudentForACourseResponse(
+					u,studentAcademicRepository.findByStudentId(u.getUserId()));
+			studentDetails.add(studentForACourseResponse);
+		}
+		return studentDetails;
+	}
+	
+	public StudentForACourseResponse listStudentByUserName(String userName) {
+		User user = userRepository.findByUserName(userName);
+		StudentAcademic studentAcademic = studentAcademicRepository.findByStudentId(user.getUserId());
+		return new StudentForACourseResponse(user,studentAcademic);
+	}
+	
 	@Override
 	public AddCourseResponse addCourse(AddCourseRequest addCourseRequest) {
 		Course course = addCourseRequest.getCourse();
@@ -89,11 +140,13 @@ public class SmsAdminServiceImpl implements SmsAdminService {
 	}
 
 	@Override
+	@Transactional
 	public String deleteCourse(String courseName) {
 		Optional<Course> opt = Optional.ofNullable(courseRepository.findByCourseName(courseName));
 		if (opt.isPresent()) {
 			Course course = opt.get();
 			courseRepository.deleteById(course.getCourseId());
+			registeredCourseRepository.deleteAllByCourseId(course.getCourseId());
 			return customProperties.getDeletesuccess() + courseName;
 		}
 		return null;
@@ -120,39 +173,37 @@ public class SmsAdminServiceImpl implements SmsAdminService {
 		Collections.sort(al, (a, b) -> a.getFeesPaidDate().compareTo(b.getFeesPaidDate()));
 		List<String> list = new ArrayList<String>();
 		for (RegisteredCourse rc : al) {
-			Optional<User> opt = userRepository.findById(rc.getStudentId());
-			if (opt.isPresent()) {
-				User user = opt.get();
-					list.add(user.getFirstName() + " " + user.getLastName()+" : "+rc.getFeesPaidDate());
-			}
+			User user = (userRepository.findById(rc.getStudentId())).get();
+			Course course = (courseRepository.findById(rc.getCourseId())).get();
+			list.add(user.getFirstName() + " " + user.getLastName() + " : " + course.getCourseName() + " : "
+					+ rc.getFeesPaidDate());
 		}
 		return list;
 	}
 
 	@Override
-	public Set<String> displayStudentsWithNoBalance() {
+	public List<String> displayStudentsWithNoBalance() {
 		List<RegisteredCourse> al = registeredCourseRepository.findByBalFeesToPay(0.0);
-		Set<String> result = new HashSet<String>();
+		List<String> result = new ArrayList<String>();
 		for (RegisteredCourse rc : al) {
-				Optional<User> opt = userRepository.findById(rc.getStudentId());
-				if (opt.isPresent()) {
-					User user = opt.get();
-					result.add(user.getFirstName() + " " + user.getLastName());
-				}
+			User user = (userRepository.findById(rc.getStudentId())).get();
+			Course course = (courseRepository.findById(rc.getCourseId())).get();
+			result.add(user.getFirstName() + " " + user.getLastName() + " : " + course.getCourseName());
 		}
 		return result;
 	}
 
 	@Override
 	public List<String> displayStudentsWithBalance() {
-		List<RegisteredCourse> al = registeredCourseRepository.findByBalFeesToPayGreaterThan(0.0);		
+		List<RegisteredCourse> al = registeredCourseRepository.findByBalFeesToPayGreaterThan(0.0);
+		// List<RegisteredCourse> al =
+		// registeredCourseRepository.findStudentsWithBalance();
 		List<String> list = new ArrayList<String>();
 		for (RegisteredCourse rc : al) {
-			Optional<User> opt = userRepository.findById(rc.getStudentId());
-				if (opt.isPresent()) {
-					User user = opt.get();
-					list.add(user.getFirstName() + " " + user.getLastName()+" : "+rc.getBalFeesToPay());
-				}
+			User user = (userRepository.findById(rc.getStudentId())).get();
+			Course course = (courseRepository.findById(rc.getCourseId())).get();
+			list.add(user.getFirstName() + " " + user.getLastName() + " : " + course.getCourseName() + " : "
+					+ rc.getBalFeesToPay());
 		}
 		return list;
 	}
@@ -162,10 +213,10 @@ public class SmsAdminServiceImpl implements SmsAdminService {
 		List<StudentForACourseResponse> dsdr = new ArrayList<StudentForACourseResponse>();
 		Course course = courseRepository.findByCourseName(courseName);
 		List<RegisteredCourse> al = registeredCourseRepository.findByCourseId(course.getCourseId());
-		for(RegisteredCourse rc : al) {
+		for (RegisteredCourse rc : al) {
 			User user = (userRepository.findById(rc.getStudentId())).get();
 			StudentAcademic studentAcademic = studentAcademicRepository.findByStudentId(rc.getStudentId());
-			StudentForACourseResponse studentForACourseResponse = new StudentForACourseResponse(user,studentAcademic);
+			StudentForACourseResponse studentForACourseResponse = new StudentForACourseResponse(user, studentAcademic);
 			dsdr.add(studentForACourseResponse);
 		}
 		return dsdr;
@@ -176,7 +227,7 @@ public class SmsAdminServiceImpl implements SmsAdminService {
 		List<Course> courseList = new ArrayList<Course>();
 		User user = userRepository.findByUserName(userName);
 		List<RegisteredCourse> al = registeredCourseRepository.findByStudentId(user.getUserId());
-		for(RegisteredCourse rc:al) {
+		for (RegisteredCourse rc : al) {
 			Course course = (courseRepository.findById(rc.getCourseId())).get();
 			courseList.add(course);
 		}
@@ -185,13 +236,13 @@ public class SmsAdminServiceImpl implements SmsAdminService {
 
 	@Override
 	public TotalAndBalanceFeeResponse totalAndBalanceFee() {
-		List<RegisteredCourse> allRegistration= registeredCourseRepository.findAll();
-		double sum = 0,rem = 0;
-		for(RegisteredCourse rc:allRegistration) {
+		List<RegisteredCourse> allRegistration = registeredCourseRepository.findAll();
+		double sum = 0, rem = 0;
+		for (RegisteredCourse rc : allRegistration) {
 			sum = sum + rc.getFeesPaid();
 			rem = rem + rc.getBalFeesToPay();
 		}
-		return new TotalAndBalanceFeeResponse(sum,rem);
+		return new TotalAndBalanceFeeResponse(sum, rem);
 	}
-		
+
 }
