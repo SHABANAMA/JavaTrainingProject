@@ -1,7 +1,6 @@
 package com.sms.studentmonitoringapp.dto;
 
-import java.util.Date;
-import java.util.Map;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,5 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RegisteredStudentsAllResponse {
 	private String status;
-	private Map<String,Date> ListOfRegisteredStudents;
+	private List<String> ListOfRegisteredStudents;
 }

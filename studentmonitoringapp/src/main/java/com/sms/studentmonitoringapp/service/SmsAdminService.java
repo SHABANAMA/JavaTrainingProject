@@ -1,8 +1,7 @@
 package com.sms.studentmonitoringapp.service;
 
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import com.sms.studentmonitoringapp.dto.AddCourseRequest;
 import com.sms.studentmonitoringapp.dto.AddCourseResponse;
@@ -19,9 +18,9 @@ public interface SmsAdminService {
 	public String deleteCourse(String courseName);
 	public List<Course> courseSearchAll();
 	public Course courseSearchByName(String courseName);
-	public Map<String,Date> displayAllRegisteredStudents();
-	public List<String> displayStudentsWithNoBalance();
-	public Map<String,Double> displayStudentsWithBalance();
+	public List<String> displayAllRegisteredStudents();
+	public Set<String> displayStudentsWithNoBalance();
+	public List<String> displayStudentsWithBalance();
 	public List<StudentForACourseResponse> displayStudentsForACourse(String courseName);
 	public List<Course> displayCoursesForAStudent(String userName); 
 	public TotalAndBalanceFeeResponse totalAndBalanceFee();

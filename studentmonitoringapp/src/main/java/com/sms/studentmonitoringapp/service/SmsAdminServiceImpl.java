@@ -1,12 +1,12 @@
 package com.sms.studentmonitoringapp.service;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.transaction.Transactional;
 
@@ -51,6 +51,11 @@ public class SmsAdminServiceImpl implements SmsAdminService {
 	@Override
 	public StudentDetailsEntryResponse enterStudentDetails(StudentDetailsEntryRequest studentDetailsEntryRequest) {
 		User user = studentDetailsEntryRequest.getUser();
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(user.getDob());
+		user.setPassWord(user.getFirstName()+calendar.get(Calendar.DAY_OF_MONTH)+calendar.get(Calendar.MONTH)+
+				calendar.get(Calendar.YEAR));
+		user.setUserName(user.getFirstName()+user.getLastName());
 		user = userRepository.save(user);
 
 		StudentAcademic studentAcademic = studentDetailsEntryRequest.getStudentAcademic();
@@ -110,50 +115,46 @@ public class SmsAdminServiceImpl implements SmsAdminService {
 	}
 
 	@Override
-	public Map<String, Date> displayAllRegisteredStudents() {
+	public List<String> displayAllRegisteredStudents() {
 		List<RegisteredCourse> al = registeredCourseRepository.findAll();
 		Collections.sort(al, (a, b) -> a.getFeesPaidDate().compareTo(b.getFeesPaidDate()));
-		Map<String, Date> lhm = new LinkedHashMap<String, Date>();
+		List<String> list = new ArrayList<String>();
 		for (RegisteredCourse rc : al) {
 			Optional<User> opt = userRepository.findById(rc.getStudentId());
 			if (opt.isPresent()) {
 				User user = opt.get();
-				lhm.put(user.getFirstName() + " " + user.getLastName(), rc.getFeesPaidDate());
+					list.add(user.getFirstName() + " " + user.getLastName()+" : "+rc.getFeesPaidDate());
 			}
 		}
-		return lhm;
+		return list;
 	}
 
 	@Override
-	public List<String> displayStudentsWithNoBalance() {
-		List<RegisteredCourse> al = registeredCourseRepository.findAll();
-		List<String> result = new ArrayList<String>();
+	public Set<String> displayStudentsWithNoBalance() {
+		List<RegisteredCourse> al = registeredCourseRepository.findByBalFeesToPay(0.0);
+		Set<String> result = new HashSet<String>();
 		for (RegisteredCourse rc : al) {
-			if (rc.getBalFeesToPay() == 0) {
 				Optional<User> opt = userRepository.findById(rc.getStudentId());
 				if (opt.isPresent()) {
 					User user = opt.get();
 					result.add(user.getFirstName() + " " + user.getLastName());
 				}
-			}
 		}
 		return result;
 	}
 
 	@Override
-	public Map<String, Double> displayStudentsWithBalance() {
-		List<RegisteredCourse> al = registeredCourseRepository.findAll();
-		Map<String, Double> lhm = new LinkedHashMap<String, Double>();
+	public List<String> displayStudentsWithBalance() {
+		List<RegisteredCourse> al = registeredCourseRepository.findByBalFeesToPayGreaterThan(0.0);		
+		List<String> list = new ArrayList<String>();
 		for (RegisteredCourse rc : al) {
-			if (rc.getBalFeesToPay() > 0) {
-				Optional<User> opt = userRepository.findById(rc.getStudentId());
+			Optional<User> opt = userRepository.findById(rc.getStudentId());
 				if (opt.isPresent()) {
 					User user = opt.get();
-					lhm.put(user.getFirstName() + " " + user.getLastName(), rc.getBalFeesToPay());
+					list.add(user.getFirstName() + " " + user.getLastName()+" : "+rc.getBalFeesToPay());
 				}
-			}
 		}
-		return lhm;
+		return list;
 	}
 
 	@Override

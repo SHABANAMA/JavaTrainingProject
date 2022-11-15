@@ -1,7 +1,7 @@
 package com.sms.studentmonitoringapp.controller;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import javax.validation.Valid;
 
@@ -68,16 +68,16 @@ public class SmsAdminController {
 	
 	@GetMapping("/listAllRegisteredStudents")
 	public RegisteredStudentsAllResponse displayAllRegisteredStudents() {
-		return new RegisteredStudentsAllResponse("REGISTERED STUDENTS ARE:-",smsAdminServiceImpl.displayAllRegisteredStudents());
+		return new RegisteredStudentsAllResponse("REGISTERED STUDENTS AND JOINING DATE ARE:-",smsAdminServiceImpl.displayAllRegisteredStudents());
 	}
 	
 	@GetMapping("/listStudentsWithNoBalancePay")
-	public List<String> displayStudentsWithNoBalance(){
+	public Set<String> displayStudentsWithNoBalance(){
 		return smsAdminServiceImpl.displayStudentsWithNoBalance();
 	}
 	
 	@GetMapping("/listStudentsWithBalancePay")
-	public Map<String,Double> displayStudentsWithBalance(){
+	public List<String> displayStudentsWithBalance(){
 		return smsAdminServiceImpl.displayStudentsWithBalance();
 	}
 	
